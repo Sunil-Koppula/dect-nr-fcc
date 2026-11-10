@@ -1,0 +1,15 @@
+#
+# Copyright 2023-2026 (c) IRISS Inc. All rights reserved.
+#
+
+config FCC_FIRMWARE_VER
+	string "Test firmware version"
+	default "1.0.0"
+
+config FCC_LOG_LEVEL
+	int "Log level for the FCC test modules"
+	default 3
+
+menu "Zephyr Kernel"
+source "Kconfig.zephyr"
+endmenu

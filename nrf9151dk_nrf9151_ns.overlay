@@ -1,0 +1,89 @@
+/*
+ * DECT NR+ Plug-In board (150067) wiring on top of nrf9151dk/nrf9151/ns.
+ */
+
+/ {
+	chosen {
+		fcc,at-uart = &uart1;
+	};
+};
+
+&pinctrl {
+	/* P0.26 is SIM_SWIO on this board, so the debug UART is TX only. */
+	uart0_tx_only: uart0_tx_only {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 27)>;
+		};
+	};
+
+	uart0_tx_only_sleep: uart0_tx_only_sleep {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 27)>;
+			low-power-enable;
+		};
+	};
+
+	/* AT port on J1: TXD P0.29 (J1-74), RXD P0.28 (J1-72). No flow control. */
+	uart1_at: uart1_at {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 29)>;
+		};
+		group2 {
+			psels = <NRF_PSEL(UART_RX, 0, 28)>;
+			bias-pull-up;
+		};
+	};
+
+	uart1_at_sleep: uart1_at_sleep {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 29)>,
+				<NRF_PSEL(UART_RX, 0, 28)>;
+			low-power-enable;
+		};
+	};
+};
+
+&uart0 {
+	pinctrl-0 = <&uart0_tx_only>;
+	pinctrl-1 = <&uart0_tx_only_sleep>;
+	disable-rx;
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart1_at>;
+	pinctrl-1 = <&uart1_at_sleep>;
+};
+
+/* M24M02 block 2 (0x52) is unallocated by the mesh firmware; test settings live here. */
+&i2c2 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	fcc_eeprom: eeprom@52 {
+		compatible = "atmel,at24";
+		reg = <0x52>;
+		size = <DT_SIZE_K(64)>;
+		pagesize = <256>;
+		address-width = <16>;
+		timeout = <20>;
+	};
+};
+
+/* Onboard LEDs through 2N7002 MOSFETs, active high. */
+&led0 {
+	gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;   /* LD1 green */
+};
+
+&led1 {
+	gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;   /* LD2 red */
+};
+
+&led2 {
+	gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;   /* J1-73, mirrors LD1 */
+};
+
+&led3 {
+	status = "disabled";
+};
